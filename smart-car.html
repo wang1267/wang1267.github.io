@@ -131,6 +131,75 @@
 
 <main>
 
+<!-- 课题要求 -->
+<section>
+  <p class="sec-num">00_课题要求</p>
+  <h2 class="sec-title">课题要求</h2>
+
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;">
+    <h4 style="color:var(--cyan);margin-bottom:.8rem;">📋 任务目标</h4>
+    <p style="color:var(--gray);font-size:.9rem;line-height:2;">
+      小车从<span class="highlight">始发线</span>出发，沿黑色轨迹线自动循迹行驶，依次经过<span class="highlight">停止线1</span>和<span class="highlight">停止线2</span>，并在指定位置完成停车。
+    </p>
+  </div>
+
+  <!-- 三阶段表格 -->
+  <div style="overflow-x:auto;margin-bottom:1.5rem;">
+    <table style="width:100%;border-collapse:collapse;font-size:.85rem;">
+      <thead>
+        <tr style="background:rgba(0,229,255,.08);">
+          <th style="padding:.7rem .8rem;text-align:center;color:var(--cyan);border-bottom:1px solid var(--border);">阶段</th>
+          <th style="padding:.7rem .8rem;text-align:center;color:var(--cyan);border-bottom:1px solid var(--border);">起始位置</th>
+          <th style="padding:.7rem .8rem;text-align:center;color:var(--cyan);border-bottom:1px solid var(--border);">目标位置</th>
+          <th style="padding:.7rem .8rem;text-align:center;color:var(--cyan);border-bottom:1px solid var(--border);">行驶状态</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:.7rem .8rem;text-align:center;font-family:'JetBrains Mono',monospace;color:var(--white);">第一阶段</td>
+          <td style="padding:.7rem .8rem;text-align:center;color:var(--green);">始发线</td>
+          <td style="padding:.7rem .8rem;text-align:center;color:var(--gray);">→ 停止线1</td>
+          <td style="padding:.7rem .8rem;text-align:center;color:var(--gray);">正常行驶</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:.7rem .8rem;text-align:center;font-family:'JetBrains Mono',monospace;color:var(--white);">第二阶段</td>
+          <td style="padding:.7rem .8rem;text-align:center;color:var(--gray);">停止线1</td>
+          <td style="padding:.7rem .8rem;text-align:center;color:var(--gray);">→ 停止线2</td>
+          <td style="padding:.7rem .8rem;text-align:center;color:var(--cyan);">减速行驶</td>
+        </tr>
+        <tr>
+          <td style="padding:.7rem .8rem;text-align:center;font-family:'JetBrains Mono',monospace;color:var(--white);">第三阶段</td>
+          <td style="padding:.7rem .8rem;text-align:center;color:var(--gray);">停止线2</td>
+          <td style="padding:.7rem .8rem;text-align:center;color:var(--gray);">→ 终点</td>
+          <td style="padding:.7rem .8rem;text-align:center;color:var(--green);font-weight:700;">停车</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 循迹逻辑 -->
+  <div class="arch-row">
+    <div class="arch-card">
+      <div class="icon">🧭</div>
+      <h4>循迹逻辑</h4>
+      <p>4 路红外传感器横向排布，检测黑白路面反射差异。中间两路对准黑线两侧，外侧两路辅助判断大角度偏离。</p>
+      <p class="spec">左传感器见黑 → 左转纠偏<br>右传感器见黑 → 右转纠偏</p>
+    </div>
+    <div class="arch-card">
+      <div class="icon">🅿</div>
+      <h4>停车逻辑</h4>
+      <p>红外传感器对横向黑线（停止线）进行计数。每次全部传感器同时检测到黑色横线时，计数器+1。</p>
+      <p class="spec">第1次见横线 → 正常行驶<br>第2次见横线 → 停止线1停车<br>第3次见横线 → 停止线2停车</p>
+    </div>
+    <div class="arch-card">
+      <div class="icon">⚙️</div>
+      <h4>运动控制</h4>
+      <p>位置式 PID 控制器根据传感器偏差实时计算左右轮差速，PWM 调节电机转速，实现平滑循迹。</p>
+      <p class="spec">Kp·误差 + Ki·积分 + Kd·微分<br>→ 左/右轮 PWM 差速输出</p>
+    </div>
+  </div>
+</section>
+
 <!-- 概览 -->
 <section>
   <p class="sec-num">01_概览</p>
