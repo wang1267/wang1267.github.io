@@ -207,7 +207,7 @@
   <div class="overview-grid">
     <div class="ov-card"><div class="val">2024.02</div><div class="lbl">开始时间</div></div>
     <div class="ov-card"><div class="val">4 个月</div><div class="lbl">开发周期</div></div>
-    <div class="ov-card"><div class="val">独立开发</div><div class="lbl">开发模式</div></div>
+    <div class="ov-card"><div class="val">团队开发</div><div class="lbl">开发模式</div></div>
     <div class="ov-card"><div class="val">STM32F103</div><div class="lbl">主控芯片</div></div>
   </div>
 </section>
@@ -239,7 +239,7 @@
       <div class="icon">🔋</div>
       <h4>供电模块</h4>
       <p>7.4V 锂电池组经稳压模块输出 5V/3.3V，分别供电驱动板与主控板</p>
-      <p class="spec">7.4V 锂电池 · 稳压模块</p>
+      <p class="spec">18650 锂电池 3.7V · L298N 稳压 5V<br>或 4 节干电池串联 ~6V</p>
     </div>
   </div>
 </section>
@@ -251,46 +251,38 @@
 
   <h4 style="color:var(--cyan);margin-bottom:.8rem;">主程序流程</h4>
   <div class="flow">
-    <div class="flow-step"><span class="s">①</span><br>传感器读取</div>
+    <div class="flow-step"><span class="s">①</span><br>红外传感器<br>读取数字量</div>
     <span class="flow-arrow">→</span>
-    <div class="flow-step"><span class="s">②</span><br>ADC 采样</div>
+    <div class="flow-step"><span class="s">②</span><br>偏差计算<br>（哪路偏黑）</div>
     <span class="flow-arrow">→</span>
-    <div class="flow-step"><span class="s">③</span><br>PID 计算</div>
+    <div class="flow-step"><span class="s">③</span><br>横线计数<br>（停车判定）</div>
     <span class="flow-arrow">→</span>
-    <div class="flow-step"><span class="s">④</span><br>PWM 输出</div>
+    <div class="flow-step"><span class="s">④</span><br>PID 计算<br>左右差速</div>
     <span class="flow-arrow">→</span>
-    <div class="flow-step"><span class="s">⑤</span><br>避障判断</div>
+    <div class="flow-step"><span class="s">⑤</span><br>PWM 输出<br>L298N 驱动</div>
     <span class="flow-arrow">→</span>
-    <div class="flow-step"><span class="s">⑥</span><br>状态更新</div>
+    <div class="flow-step"><span class="s">⑥</span><br>电机执行<br>循环</div>
   </div>
 
-  <div class="code-block">
-    <pre><span class="cm">/* 循迹传感器读取与位置偏差计算 */</span>
-<span class="kw">uint8_t</span> <span class="fn">readSensors</span>(<span class="kw">void</span>) {
-    <span class="kw">uint8_t</span> pattern = <span class="val">0</span>;
-    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="val">0</span>; i < <span class="val">4</span>; i++) {
-        pattern |= (GPIO_ReadInputDataBit(sensor_port[i], sensor_pin[i]) << i);
-    }
-    <span class="kw">return</span> pattern;
-}
-
-<span class="cm">/* PID 控制器 — 根据偏差计算差速 */</span>
-<span class="kw">float</span> <span class="fn">PID_Compute</span>(<span class="kw">float</span> error) {
-    integral += error * DT;
-    derivative = (error - prev_error) / DT;
-    prev_error = error;
-    <span class="kw">return</span> Kp * error + Ki * integral + Kd * derivative;
-}
-
-<span class="cm">/* 电机 PWM 输出 — 左轮/右轮独立调速 */</span>
-<span class="kw">void</span> <span class="fn">motorControl</span>(<span class="kw">float</span> correction) {
-    <span class="kw">int16_t</span> left  = BASE_SPEED - correction;
-    <span class="kw">int16_t</span> right = BASE_SPEED + correction;
-    TIM_SetCompare1(TIM2, clamp(left,  <span class="val">0</span>, MAX_PWM));
-    TIM_SetCompare2(TIM2, clamp(right, <span class="val">0</span>, MAX_PWM));
-}</pre>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.5rem;">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.2rem;">
+      <h4 style="color:var(--green);font-size:.85rem;margin-bottom:.6rem;">🔴 红外传感器 D0 输出逻辑</h4>
+      <p style="color:var(--gray);font-size:.8rem;line-height:1.8;">
+        白色地面 → 反射红外 → 接收管收到 → <span style="color:var(--green);">D0 = 1</span>（高电平，指示灯亮）<br>
+        黑色轨迹 → 吸收红外 → 接收管未收到 → <span style="color:var(--cyan);">D0 = 0</span>（低电平，指示灯灭）
+      </p>
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.2rem;">
+      <h4 style="color:var(--green);font-size:.85rem;margin-bottom:.6rem;">⚡ L298N 电机控制逻辑</h4>
+      <p style="color:var(--gray);font-size:.8rem;line-height:1.8;">
+        IN1=1 IN2=0 → 左电机正转<br>
+        IN1=0 IN2=1 → 左电机反转<br>
+        IN1=IN2 → 刹车/停转<br>
+        ENA/ENB → PWM 占空比调速
+      </p>
+    </div>
   </div>
-  <p style="color:var(--gray);font-size:.8rem;margin-top:.6rem;">开发环境: Keil MDK-ARM V5 · 语言: C · 仿真工具: ST-Link 在线调试</p>
+  <p style="color:var(--gray);font-size:.8rem;margin-top:.8rem;">开发环境: Keil MDK-ARM V5 · 语言: C · 调试: ST-Link 在线仿真</p>
 </section>
 
 <!-- 关键指标 -->
