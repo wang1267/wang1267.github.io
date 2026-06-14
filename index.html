@@ -327,16 +327,32 @@
 
   /* ═══════════════ 右侧滚动指示器 ═══════════════ */
   .side-scroll {
-    position: fixed; right: 16px; top: 50%; transform: translateY(-50%);
+    position: fixed; right: 20px; top: 50%; transform: translateY(-50%);
     z-index: 99; cursor: pointer;
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
-    opacity: .35; transition: opacity .3s;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    opacity: .55; transition: opacity .3s, transform .3s;
   }
-  .side-scroll:hover { opacity: .85; }
-  .side-scroll .scroll-mouse { width: 18px; height: 28px; }
-  .side-scroll .scroll-mouse::after { animation-duration: 1.6s; }
-  .side-scroll span { font-size: .6rem; color: var(--gray); writing-mode: vertical-rl; letter-spacing: 1px; }
-  .side-scroll.end { opacity: .1; pointer-events: none; }
+  .side-scroll:hover { opacity: 1; transform: translateY(-50%) scale(1.1); }
+  .side-arrow-circle {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 2px solid rgba(0,229,255,.5);
+    display: flex; align-items: center; justify-content: center;
+    animation: arrowPulse 2.2s ease-in-out infinite;
+  }
+  @keyframes arrowPulse {
+    0%,100% { box-shadow: 0 0 8px rgba(0,229,255,.15); border-color: rgba(0,229,255,.4); }
+    50% { box-shadow: 0 0 22px rgba(0,229,255,.4); border-color: rgba(0,229,255,.9); }
+  }
+  .side-arrow {
+    color: var(--cyan); font-size: 1.2rem;
+    animation: arrowDown 2.2s ease-in-out infinite;
+  }
+  @keyframes arrowDown {
+    0%,100% { transform: translateY(-2px); opacity: .6; }
+    50% { transform: translateY(3px); opacity: 1; }
+  }
+  .side-scroll span { font-size: .7rem; color: var(--cyan); letter-spacing: 2px; }
+  .side-scroll.end { opacity: .08; pointer-events: none; }
 
   /* ═══════════════ 回到顶部按钮 ═══════════════ */
   #backTop {
@@ -700,7 +716,7 @@
 
 <!-- 右侧滚动指示器 -->
 <div class="side-scroll" id="sideScroll" title="下一节">
-  <div class="scroll-mouse"></div>
+  <div class="side-arrow-circle"><span class="side-arrow">↓</span></div>
   <span>下滑</span>
 </div>
 
