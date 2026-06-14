@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>王哲 · 智能车辆工程</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230d0d1a'/><text x='16' y='23' text-anchor='middle' font-family='Arial Black,sans-serif' font-size='20' fill='%2300e5ff'>W</text></svg>">
+<meta name="description" content="王哲 · 湖北汽车工业学院 智能车辆工程 2027届 · 智驾/智能座舱实习生">
+<meta property="og:title" content="王哲 · 智能车辆工程">
+<meta property="og:description" content="智能座舱 / 智能驾驶实习生 · 2026暑期实习">
+<meta property="og:image" content="images/wangzhe.jpg">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;700;900&display=swap');
 
@@ -30,17 +35,13 @@
     line-height: 1.7;
   }
 
-  /* ─── GRID BG ─── */
-  .grid-bg {
-    position: fixed; inset: 0; z-index: 0; opacity: 0.03;
-    background-image:
-      linear-gradient(rgba(0,229,255,.3) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,229,255,.3) 1px, transparent 1px);
-    background-size: 60px 60px;
+  /* ═══════════════ Canvas 粒子背景 ═══════════════ */
+  #particle-canvas {
+    position: fixed; inset: 0; z-index: 0;
     pointer-events: none;
   }
 
-  /* ─── NAV ─── */
+  /* ═══════════════ NAV ═══════════════ */
   nav {
     position: fixed; top: 0; width: 100%; z-index: 100;
     padding: 1rem 2rem;
@@ -50,10 +51,20 @@
   }
   .nav-logo { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 1.2rem; color: var(--cyan); }
   .nav-links { display: flex; gap: 2rem; list-style: none; }
-  .nav-links a { color: var(--gray); text-decoration: none; font-size: .9rem; transition: color .3s; }
+  .nav-links a {
+    color: var(--gray); text-decoration: none; font-size: .9rem;
+    transition: color .3s; position: relative; padding-bottom: 4px;
+  }
+  .nav-links a::after {
+    content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%) scaleX(0);
+    width: 100%; height: 2px; background: var(--cyan); border-radius: 1px;
+    transition: transform .3s ease;
+  }
   .nav-links a:hover { color: var(--cyan); }
+  .nav-links a.active { color: var(--cyan); }
+  .nav-links a.active::after { transform: translateX(-50%) scaleX(1); }
 
-  /* ─── HERO ─── */
+  /* ═══════════════ HERO ═══════════════ */
   #hero {
     position: relative; z-index: 1;
     min-height: 100vh; display: flex; align-items: center; justify-content: center;
@@ -94,168 +105,427 @@
   }
   .scroll-hint {
     position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
-    color: var(--gray); font-size: .8rem; animation: bounce 2s infinite;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    color: var(--gray); font-size: .75rem; cursor: pointer;
   }
-  @keyframes bounce {
-    0%,100% { transform: translateX(-50%) translateY(0); opacity: .6; }
-    50% { transform: translateX(-50%) translateY(8px); opacity: 1; }
+  .scroll-mouse {
+    width: 22px; height: 34px; border-radius: 12px;
+    border: 2px solid var(--gray);
+    position: relative;
+  }
+  .scroll-mouse::after {
+    content: ''; position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+    width: 3px; height: 6px; border-radius: 2px; background: var(--cyan);
+    animation: wheel 1.8s ease-in-out infinite;
+  }
+  @keyframes wheel {
+    0% { top: 6px; opacity: 1; }
+    100% { top: 18px; opacity: 0; }
+  }
+  .scroll-hint span { animation: hintFade 1.8s ease-in-out infinite; }
+  @keyframes hintFade {
+    0%,100% { opacity: .4; }
+    50% { opacity: 1; }
   }
 
-  /* ─── SECTION ─── */
-  section { position: relative; z-index: 1; padding: 5rem 2rem; }
-  .section-inner { max-width: 900px; margin: 0 auto; }
+  /* ═══════════════ SECTION 基础 ═══════════════ */
+  section { position: relative; z-index: 1; padding: 5rem 2rem; overflow: hidden; }
+  .section-inner { max-width: 900px; margin: 0 auto; position: relative; }
   .section-tag {
     font-family: 'JetBrains Mono', monospace; font-size: .8rem; color: var(--cyan);
     margin-bottom: .5rem; letter-spacing: 3px; text-transform: uppercase;
   }
   .section-title {
     font-size: 2.2rem; font-weight: 900; margin-bottom: 2rem;
-    position: relative; display: inline-block;
+    position: relative; display: inline-block; z-index: 1;
   }
-  .section-title::after {
+  /* 超大淡化编号 */
+  .section-num {
+    position: absolute; top: -1.2rem; left: -1rem; z-index: 0;
+    font-family: 'JetBrains Mono', monospace; font-size: 9rem; font-weight: 900;
+    line-height: 1; pointer-events: none; opacity: .025;
+  }
+  /* 每区编号颜色 */
+  #about .section-num { color: var(--cyan); }
+  #timeline .section-num { color: var(--green); }
+  #skills .section-num { color: var(--purple); }
+  #projects .section-num { color: var(--cyan); }
+  #contact .section-num { color: var(--green); }
+  /* 每区 tag 颜色 */
+  #about .section-tag { color: var(--cyan); }
+  #timeline .section-tag { color: var(--green); }
+  #skills .section-tag { color: var(--purple); }
+  #projects .section-tag { color: var(--cyan); }
+  #contact .section-tag { color: var(--green); }
+  /* 每区标题下划线色 */
+  #about .section-title::after { background: var(--cyan); }
+  #timeline .section-title::after { background: var(--green); }
+  #skills .section-title::after { background: var(--purple); }
+  #projects .section-title::after { background: var(--cyan); }
+  #contact .section-title::after { background: var(--green); }
+
+  /* 卡片 3D 悬浮 */
+  .about-card, .skill-group, .proj-card, .tl-item, .contact-item {
+    transition: transform .35s cubic-bezier(.23,1,.32,1), box-shadow .35s ease, border-color .35s ease;
+  }
+  .about-card:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(0,0,0,.4); }
+  .skill-group:hover { transform: translateY(-5px); box-shadow: 0 10px 28px rgba(0,0,0,.35); }
+  .tl-item:hover { transform: translateX(4px); }
+  .contact-item:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,229,255,.1); }
+
+  /* ═══════════════ ABOUT · 左侧竖线 + 编号卡片 ═══════════════ */
+  #about { background: var(--bg2); }
+  #about .section-inner {
+    border-left: 2px solid var(--cyan);
+    padding-left: 2rem;
+  }
+  #about .section-title::after {
     content: ''; position: absolute; bottom: -4px; left: 0;
     width: 60%; height: 3px; background: var(--cyan); border-radius: 2px;
   }
-
-  /* ─── ABOUT ─── */
-  #about { background: var(--bg2); }
   .about-grid {
     display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
   }
   .about-card {
     background: var(--bg); border: 1px solid var(--border); border-radius: 12px;
-    padding: 1.5rem; transition: border-color .3s;
+    padding: 1.8rem 1.5rem 1.5rem; transition: border-color .3s;
+    position: relative;
   }
   .about-card:hover { border-color: var(--cyan); }
+  .about-card .card-num {
+    position: absolute; top: -14px; left: 1.2rem;
+    font-family: 'JetBrains Mono', monospace; font-size: .75rem; font-weight: 700;
+    color: var(--bg); background: var(--cyan);
+    padding: 2px 10px; border-radius: 4px;
+  }
   .about-card h4 { color: var(--cyan); font-size: .85rem; margin-bottom: .6rem; }
   .about-card p { color: var(--gray); font-size: .9rem; }
   .highlight { color: var(--green); font-weight: 700; }
 
-  /* ─── SKILLS ─── */
-  .skill-cloud { display: flex; flex-wrap: wrap; gap: .7rem; }
+  /* ═══════════════ TIMELINE · 左侧时间线 ═══════════════ */
+  #timeline { background: var(--bg); }
+  #timeline .section-title { color: var(--green); }
+  .timeline-wrap {
+    position: relative; padding-left: 2.5rem;
+  }
+  .timeline-wrap::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 2px; background: linear-gradient(to bottom, var(--cyan), var(--green), var(--purple));
+    border-radius: 1px;
+  }
+  .tl-item {
+    position: relative; margin-bottom: 2rem; padding-left: 2rem;
+    transition: border-color .3s;
+  }
+  .tl-item:last-child { margin-bottom: 0; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -2.9rem; top: .45rem;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--bg); border: 3px solid var(--cyan);
+    box-shadow: 0 0 10px rgba(0,229,255,.3);
+    transition: all .3s ease;
+    z-index: 2;
+  }
+  .tl-item:hover::before {
+    background: var(--cyan); box-shadow: 0 0 20px rgba(0,229,255,.6);
+  }
+  .tl-date {
+    font-family: 'JetBrains Mono', monospace; font-size: .8rem;
+    color: var(--cyan); letter-spacing: 1px; margin-bottom: .2rem;
+  }
+  .tl-item h4 { font-size: 1.1rem; color: var(--white); margin-bottom: .3rem; }
+  .tl-item p { color: var(--gray); font-size: .9rem; }
+  .tl-item.goal::before { border-color: var(--green); box-shadow: 0 0 10px rgba(0,255,136,.3); }
+  .tl-item.goal:hover::before { background: var(--green); box-shadow: 0 0 20px rgba(0,255,136,.6); }
+  .tl-item.goal .tl-date { color: var(--green); }
+
+  /* ═══════════════ SKILLS · 分组卡片式 ═══════════════ */
+  #skills { background: var(--bg); }
+  #skills .section-title { color: var(--cyan); }
+  .skill-groups { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .skill-group {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.5rem; transition: border-color .3s;
+  }
+  .skill-group:hover { border-color: rgba(0,229,255,.3); }
+  .skill-group h4 {
+    font-family: 'JetBrains Mono', monospace; font-size: .8rem;
+    color: var(--green); margin-bottom: 1rem; letter-spacing: 2px;
+  }
+  .skill-group .tags { display: flex; flex-wrap: wrap; gap: .5rem; }
   .skill-tag {
-    padding: .5rem 1.2rem; border-radius: 50px;
-    font-family: 'JetBrains Mono', monospace; font-size: .85rem;
+    padding: .35rem .9rem; border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace; font-size: .8rem;
     border: 1px solid var(--border); color: var(--gray);
     transition: all .3s; cursor: default;
   }
   .skill-tag:hover {
     border-color: var(--cyan); color: var(--cyan);
-    box-shadow: 0 0 20px rgba(0,229,255,.15);
+    box-shadow: 0 0 16px rgba(0,229,255,.12);
     transform: translateY(-2px);
   }
   .skill-tag.core { border-color: var(--green); color: var(--green); }
 
-  /* ─── PROJECTS ─── */
+  /* ═══════════════ PROJECTS · 全宽沉浸卡 ═══════════════ */
   #projects { background: var(--bg2); }
+  #projects .section-title { color: var(--white); }
   .proj-card {
     background: var(--bg); border: 1px solid var(--border); border-radius: 16px;
-    padding: 2rem; display: flex; gap: 2rem; align-items: flex-start;
-    transition: all .3s; position: relative; overflow: hidden;
-    flex-wrap: wrap;
+    padding: 0; display: flex; gap: 0;
+    transition: all .4s ease; position: relative; overflow: hidden;
   }
   .proj-card::before {
-    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: radial-gradient(circle at 30% 20%, rgba(0,229,255,.04), transparent 60%);
-    pointer-events: none;
+    content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+    background: var(--cyan); transition: width .3s ease; z-index: 2;
   }
-  .proj-card:hover { border-color: var(--cyan); transform: translateY(-4px); }
-  .proj-icon {
-    width: 60px; height: 60px; border-radius: 14px; background: rgba(0,229,255,.1);
-    display: flex; align-items: center; justify-content: center; font-size: 1.6rem;
+  .proj-card:hover::before { width: 6px; }
+  .proj-card:hover { border-color: var(--cyan); transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,229,255,.08); }
+  .proj-card + .proj-card { margin-top: 1.5rem; }
+  .proj-img {
+    width: 200px; min-height: 200px; flex-shrink: 0;
+    background: linear-gradient(135deg, rgba(0,229,255,.08), rgba(0,255,136,.06));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 3rem; border-right: 1px solid var(--border);
   }
-  .proj-info h3 { font-size: 1.3rem; margin-bottom: .4rem; }
-  .proj-info .meta { color: var(--cyan); font-size: .85rem; margin-bottom: .8rem; }
-  .proj-info p { color: var(--gray); font-size: .9rem; }
-  .proj-stats { display: flex; gap: 2rem; margin-top: 1rem; flex-wrap: wrap; }
+  .proj-body { padding: 2rem; flex: 1; }
+  .proj-body h3 { font-size: 1.3rem; margin-bottom: .4rem; }
+  .proj-body .meta { color: var(--cyan); font-size: .85rem; margin-bottom: .8rem; }
+  .proj-body .meta a { color: var(--cyan); text-decoration: none; }
+  .proj-body .meta a:hover { text-decoration: underline; }
+  .proj-body p { color: var(--gray); font-size: .9rem; }
+  .proj-stats { display: flex; gap: 2rem; margin-top: 1.2rem; flex-wrap: wrap; }
   .proj-stat { text-align: center; }
   .proj-stat .num { font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; color: var(--green); font-weight: 700; }
   .proj-stat .lbl { font-size: .75rem; color: var(--gray); }
 
-  /* ─── CONTACT ─── */
-  .contact-links { display: flex; gap: 2rem; flex-wrap: wrap; }
+  /* 项目点击提示徽章 */
+  .click-badge {
+    display: inline-block; vertical-align: middle;
+    font-size: .65rem; font-weight: 400; font-family: 'Noto Sans SC', sans-serif;
+    color: var(--cyan); border: 1px solid rgba(0,229,255,.4);
+    padding: 2px 10px; border-radius: 50px; margin-left: .5rem;
+    animation: badgePulse 2.5s ease-in-out infinite;
+    cursor: pointer; letter-spacing: 0;
+  }
+  @keyframes badgePulse {
+    0%,100% { border-color: rgba(0,229,255,.4); box-shadow: 0 0 0 rgba(0,229,255,0); }
+    50% { border-color: var(--cyan); box-shadow: 0 0 12px rgba(0,229,255,.25); }
+  }
+
+  /* ═══════════════ CONTACT · 极简留白 ═══════════════ */
+  #contact { background: var(--bg); padding-top: 6rem; padding-bottom: 6rem; }
+  #contact .section-inner { text-align: center; }
+  #contact .section-title { margin-bottom: 3rem; }
+  .contact-links { display: flex; gap: 2rem; flex-wrap: wrap; justify-content: center; }
   .contact-item {
     display: flex; align-items: center; gap: .6rem; padding: 1rem 1.5rem;
     border: 1px solid var(--border); border-radius: 12px; color: var(--gray);
     text-decoration: none; transition: all .3s;
   }
-  .contact-item:hover { border-color: var(--cyan); color: var(--cyan); }
+  .contact-item:hover { border-color: var(--cyan); color: var(--cyan); transform: translateY(-2px); }
   .contact-icon { font-size: 1.3rem; }
 
-  /* ─── FOOTER ─── */
-  footer {
-    text-align: center; padding: 2rem; border-top: 1px solid var(--border);
-    color: var(--gray); font-size: .8rem;
+  /* ═══════════════ 右侧滚动指示器 ═══════════════ */
+  .side-scroll {
+    position: fixed; right: 16px; top: 50%; transform: translateY(-50%);
+    z-index: 99; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    opacity: .35; transition: opacity .3s;
+  }
+  .side-scroll:hover { opacity: .85; }
+  .side-scroll .scroll-mouse { width: 18px; height: 28px; }
+  .side-scroll .scroll-mouse::after { animation-duration: 1.6s; }
+  .side-scroll span { font-size: .6rem; color: var(--gray); writing-mode: vertical-rl; letter-spacing: 1px; }
+  .side-scroll.end { opacity: .1; pointer-events: none; }
+
+  /* ═══════════════ 回到顶部按钮 ═══════════════ */
+  #backTop {
+    position: fixed; bottom: 28px; right: 28px; z-index: 99;
+    width: 40px; height: 40px; border-radius: 50%;
+    background: rgba(0,229,255,.12); border: 1px solid rgba(0,229,255,.3);
+    color: var(--cyan); font-size: 1.2rem;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; opacity: 0; pointer-events: none;
+    transition: opacity .3s, background .3s, box-shadow .3s;
+  }
+  #backTop.show { opacity: 1; pointer-events: auto; }
+  #backTop:hover { background: rgba(0,229,255,.25); box-shadow: 0 0 16px rgba(0,229,255,.3); }
+
+  /* ═══════════════ 汉堡菜单 ═══════════════ */
+  .hamburger {
+    display: none; background: none; border: none; cursor: pointer;
+    padding: 6px; z-index: 101; flex-direction: column; gap: 5px;
+  }
+  .hamburger span {
+    display: block; width: 22px; height: 2px; background: var(--cyan);
+    border-radius: 1px; transition: transform .3s, opacity .3s;
+  }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  .mobile-nav {
+    display: none; position: fixed; inset: 0; z-index: 99;
+    background: rgba(7,7,14,.95); backdrop-filter: blur(16px);
+    flex-direction: column; align-items: center; justify-content: center; gap: 2rem;
+  }
+  .mobile-nav a {
+    color: var(--gray); text-decoration: none; font-size: 1.4rem; font-weight: 300;
+    transition: color .3s;
+  }
+  .mobile-nav a:hover, .mobile-nav a.active { color: var(--cyan); }
+  .mobile-nav.open { display: flex; }
+
+  /* ═══════════════ 头像弧形文字 ═══════════════ */
+  .hero-img-wrap { position: relative; display: inline-block; }
+  .arc-svg {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 260px; height: 260px; pointer-events: none;
+    animation: arcSpin 30s linear infinite;
+  }
+  @keyframes arcSpin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
   }
 
-  /* ─── RESPONSIVE ─── */
+  /* ═══════════════ PDF 内联预览 ═══════════════ */
+  .pdf-preview {
+    display: none; margin-top: 2rem;
+    width: 100%; height: 500px; border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden; background: #fff;
+  }
+  .pdf-preview.open { display: block; }
+  .pdf-preview iframe { width: 100%; height: 100%; border: none; }
+  .pdf-toggle {
+    display: inline-flex; align-items: center; gap: .4rem;
+    font-size: .85rem; color: var(--cyan); cursor: pointer;
+    margin-top: 1.5rem; transition: color .3s;
+  }
+  .pdf-toggle:hover { color: var(--green); }
+
+  /* ═══════════════ FOOTER ═══════════════ */
+  footer {
+    text-align: center; padding: 2rem; border-top: 1px solid var(--border);
+    color: var(--gray); font-size: .8rem; position: relative; z-index: 1;
+  }
+
+  /* ═══════════════ 错位入场动画 ═══════════════ */
+  .reveal {
+    opacity: 0; transform: translateY(40px);
+    transition: opacity .6s ease-out, transform .6s ease-out;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-stagger {
+    opacity: 0; transform: translateY(30px) scale(.96);
+    transition: opacity .5s ease-out, transform .5s ease-out;
+  }
+  .reveal-stagger.visible { opacity: 1; transform: translateY(0) scale(1); }
+
+  /* ═══════════════ 数字滚动 ═══════════════ */
+  .count-up { display: inline-block; }
+
+  /* ═══════════════ RESPONSIVE ═══════════════ */
   @media (max-width: 768px) {
     .nav-links { display: none; }
+    .hamburger { display: flex; }
     .hero-text h1 { font-size: 2.6rem; }
     .hero-text .tag { font-size: 1.1rem; }
     .hero-img { width: 160px; height: 160px; }
+    .arc-svg { width: 190px; height: 190px; }
     .hero-wrap { gap: 2rem; }
     .about-grid { grid-template-columns: 1fr; }
+    .skill-groups { grid-template-columns: 1fr; }
     .proj-card { flex-direction: column; }
+    .proj-img { width: 100%; min-height: 120px; border-right: none; border-bottom: 1px solid var(--border); }
     .section-title { font-size: 1.6rem; }
+    #about .section-inner { padding-left: 1rem; }
+    .timeline-wrap { padding-left: 1.8rem; }
+    #backTop { bottom: 16px; right: 16px; width: 36px; height: 36px; font-size: 1rem; }
+    .section-num { font-size: 6rem; top: -.6rem; left: -.5rem; }
   }
-
-  /* ─── FADE IN ─── */
-  .reveal { opacity: 0; transform: translateY(30px); transition: .6s ease-out; }
-  .reveal.visible { opacity: 1; transform: translateY(0); }
 </style>
 </head>
 <body>
 
-<div class="grid-bg"></div>
+<canvas id="particle-canvas"></canvas>
 
 <!-- NAV -->
 <nav>
   <div class="nav-logo">WZ</div>
   <ul class="nav-links">
-    <li><a href="#hero">Home</a></li>
+    <li><a href="#hero" class="active">Home</a></li>
     <li><a href="#about">About</a></li>
+    <li><a href="#timeline">Timeline</a></li>
     <li><a href="#skills">Skills</a></li>
     <li><a href="#projects">Projects</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
+  <button class="hamburger" id="hamburger" aria-label="菜单">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+<div class="mobile-nav" id="mobileNav">
+  <a href="#hero">Home</a>
+  <a href="#about">About</a>
+  <a href="#timeline">Timeline</a>
+  <a href="#skills">Skills</a>
+  <a href="#projects">Projects</a>
+  <a href="#contact">Contact</a>
+</div>
 
-<!-- HERO -->
+<!-- ═══════════════ HERO ═══════════════ -->
 <section id="hero">
   <div class="hero-wrap">
-    <img class="hero-img" src="images/wangzhe.jpg" alt="王哲">
+    <div class="hero-img-wrap">
+      <svg class="arc-svg" viewBox="0 0 260 260">
+        <defs>
+          <path id="arcPath" d="M 12,130 A 118,118 0 1,1 248,130" />
+        </defs>
+        <text fill="#00e5ff" font-size="14" font-family="Noto Sans SC, sans-serif" font-weight="700" letter-spacing="3">
+          <textPath href="#arcPath" startOffset="50%" text-anchor="middle">湖北汽车工业学院 · 智能车辆工程</textPath>
+        </text>
+      </svg>
+      <img class="hero-img" src="images/wangzhe.jpg" alt="王哲">
+    </div>
     <div class="hero-text">
       <h1>王哲</h1>
       <p class="tag">智能车辆工程专业<br><span>智驾 / 智能座舱实习生</span></p>
       <p style="color:var(--gray);font-size:.95rem;">湖北汽车工业学院 · 2027届</p>
-      <div class="hero-badge">▼ 寻找 2026 暑期实习</div>
+      <div class="hero-badge" onclick="document.getElementById('about').scrollIntoView({behavior:'smooth'})" style="cursor:pointer;">▼ 期待加入您的团队</div>
     </div>
   </div>
-  <div class="scroll-hint">↓ 下滑了解更多</div>
+  <div class="scroll-hint" onclick="document.getElementById('about').scrollIntoView({behavior:'smooth'})">
+    <div class="scroll-mouse"></div>
+    <span>下滑了解更多</span>
+  </div>
 </section>
 
-<!-- ABOUT -->
+<!-- ═══════════════ ABOUT · 左侧竖线 + 编号卡片 ═══════════════ -->
 <section id="about">
   <div class="section-inner reveal">
+    <span class="section-num">01</span>
     <p class="section-tag">_about</p>
     <h2 class="section-title">关于我</h2>
     <div class="about-grid">
-      <div class="about-card">
+      <div class="about-card reveal-stagger">
+        <span class="card-num">01</span>
         <h4>📌 教育背景</h4>
         <p>湖北汽车工业学院 · <span class="highlight">智能车辆工程</span> 本科 2023-2027</p>
-        <p style="margin-top:.4rem;">GPA <span class="highlight">3.26 / 4.0</span> · 专业排名 <span class="highlight">前 15%</span></p>
+        <p style="margin-top:.4rem;">GPA <span class="highlight count-up" data-count="3.26" data-decimals="2">3.26</span> / 4.0 · 专业排名 <span class="highlight count-up" data-count="15" data-prefix="前 " data-suffix="%">前 15%</span></p>
       </div>
-      <div class="about-card">
+      <div class="about-card reveal-stagger">
+        <span class="card-num">02</span>
         <h4>🎯 求职方向</h4>
         <p><span class="highlight">智能座舱</span> / <span class="highlight">智能驾驶</span> 实习生</p>
-        <p style="margin-top:.4rem;">2026 暑期入职 · 对车载 HMI、感知融合、嵌入式智驾系统有强烈兴趣</p>
+        <p style="margin-top:.4rem;">2026 暑期便能立即入职 · 对车载 HMI、感知融合、嵌入式智驾系统有强烈兴趣</p>
       </div>
-      <div class="about-card">
+      <div class="about-card reveal-stagger">
+        <span class="card-num">03</span>
         <h4>🏆 核心课程</h4>
-        <p>Python 程序设计 <span class="highlight">98分</span> · 物联网信息安全 <span class="highlight">95分</span> · C语言 <span class="highlight">92分</span> · 嵌入式系统设计 <span class="highlight">88分</span></p>
+        <p>Python 程序设计 <span class="highlight count-up" data-count="98">98分</span> · 物联网信息安全 <span class="highlight count-up" data-count="95">95分</span></p>
+        <p style="margin-top:.4rem;">C语言 <span class="highlight count-up" data-count="92">92分</span> · 嵌入式系统设计 <span class="highlight count-up" data-count="88">88分</span></p>
       </div>
-      <div class="about-card">
+      <div class="about-card reveal-stagger">
+        <span class="card-num">04</span>
         <h4>💡 关于我</h4>
         <p>热爱智能汽车技术，对自动驾驶和智能座舱充满热情。动手能力强，从零搭建过智能小车项目。熟练运用 <span class="highlight">Claude Code</span> 等 AI 工具辅助开发，高效完成编码、调试与技术文档。</p>
       </div>
@@ -263,55 +533,132 @@
   </div>
 </section>
 
-<!-- SKILLS -->
-<section id="skills">
+<!-- ═══════════════ TIMELINE · 时间线 ═══════════════ -->
+<section id="timeline">
   <div class="section-inner reveal">
-    <p class="section-tag">_skills</p>
-    <h2 class="section-title">技术栈</h2>
-    <div class="skill-cloud">
-      <span class="skill-tag core">Python</span>
-      <span class="skill-tag core">C / C++</span>
-      <span class="skill-tag">STM32</span>
-      <span class="skill-tag">Keil</span>
-      <span class="skill-tag">MATLAB</span>
-      <span class="skill-tag">Simulink</span>
-      <span class="skill-tag">嵌入式系统</span>
-      <span class="skill-tag">传感器</span>
-      <span class="skill-tag">PID 控制</span>
-      <span class="skill-tag">CAD</span>
-      <span class="skill-tag">Git</span>
-      <span class="skill-tag">Linux</span>
-      <span class="skill-tag core">AI 应用</span>
-      <span class="skill-tag core">Claude Code</span>
-      <span class="skill-tag">AI 辅助开发</span>
+    <span class="section-num">02</span>
+    <p class="section-tag">_timeline</p>
+    <h2 class="section-title">成长历程</h2>
+    <div class="timeline-wrap">
+
+      <div class="tl-item reveal-stagger">
+        <p class="tl-date">2023.09</p>
+        <h4>入学 · 湖北汽车工业学院</h4>
+        <p>进入 <span class="highlight">智能车辆工程</span> 专业，开启智能汽车技术学习之路。</p>
+      </div>
+
+      <div class="tl-item reveal-stagger">
+        <p class="tl-date">2024.02</p>
+        <h4>智能小车创新设计</h4>
+        <p>以 <span class="highlight">STM32</span> 为核心，独立完成循迹避障小车，掌握 PID 控制与嵌入式调试。</p>
+      </div>
+
+      <div class="tl-item reveal-stagger">
+        <p class="tl-date">2025.07</p>
+        <h4>暑期社会实践 · 外卖配送</h4>
+        <p>利用暑假兼职外卖配送，在高温与高强度订单压力下锻炼了<span class="highlight">吃苦耐劳</span>的意志力和<span class="highlight">时间管理</span>能力。</p>
+      </div>
+
+      <div class="tl-item reveal-stagger">
+        <p class="tl-date">2026.02</p>
+        <h4>城市管理实践</h4>
+        <p>为期一个月的城管工作经历，深入一线与各类人群打交道，培养了<span class="highlight">沟通协调</span>与<span class="highlight">群众工作</span>能力。</p>
+      </div>
+
+      <div class="tl-item reveal-stagger">
+        <p class="tl-date">2026.06</p>
+        <h4>接触 AI 开发 · 智能座舱 HMI</h4>
+        <p>开始学习 <span class="highlight">Claude Code</span> 辅助开发，从零搭建 <span class="highlight">Flask + Web</span> 车载仪表盘原型：语音控制、电池管理、10Hz 实时仿真。</p>
+      </div>
+
+      <div class="tl-item goal reveal-stagger">
+        <p class="tl-date">2026.07 🎯</p>
+        <h4>暑期实习 · 智驾 / 智能座舱</h4>
+        <p>寻找 <span class="highlight">2026 暑期实习</span>机会，期望深入车载 HMI、感知融合或嵌入式智驾方向。</p>
+      </div>
+
+      <div class="tl-item goal reveal-stagger">
+        <p class="tl-date">2027.06 🎓</p>
+        <h4>预计毕业</h4>
+        <p>完成智能车辆工程本科学业，正式进入智能汽车行业。</p>
+      </div>
+
     </div>
   </div>
 </section>
 
-<!-- PROJECTS -->
+<!-- ═══════════════ SKILLS · 分组卡片 ═══════════════ -->
+<section id="skills">
+  <div class="section-inner reveal">
+    <span class="section-num">03</span>
+    <p class="section-tag">_skills</p>
+    <h2 class="section-title">技术栈</h2>
+    <div class="skill-groups">
+      <div class="skill-group reveal-stagger">
+        <h4>💻 编程语言</h4>
+        <div class="tags">
+          <span class="skill-tag core">Python</span>
+          <span class="skill-tag core">C / C++</span>
+        </div>
+      </div>
+      <div class="skill-group reveal-stagger">
+        <h4>🔧 嵌入式开发</h4>
+        <div class="tags">
+          <span class="skill-tag">STM32</span>
+          <span class="skill-tag">Keil</span>
+          <span class="skill-tag">传感器</span>
+          <span class="skill-tag">PID 控制</span>
+        </div>
+      </div>
+      <div class="skill-group reveal-stagger">
+        <h4>🛠 工具与平台</h4>
+        <div class="tags">
+          <span class="skill-tag">MATLAB</span>
+          <span class="skill-tag">Simulink</span>
+          <span class="skill-tag">CAD</span>
+          <span class="skill-tag">Git</span>
+          <span class="skill-tag">Linux</span>
+        </div>
+      </div>
+      <div class="skill-group reveal-stagger">
+        <h4>🤖 AI 与现代开发</h4>
+        <div class="tags">
+          <span class="skill-tag core">AI 应用</span>
+          <span class="skill-tag core">Claude Code</span>
+          <span class="skill-tag">AI 辅助开发</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ PROJECTS · 全宽沉浸卡 ═══════════════ -->
 <section id="projects">
   <div class="section-inner reveal">
+    <span class="section-num">04</span>
     <p class="section-tag">_projects</p>
     <h2 class="section-title">项目经历</h2>
-    <div class="proj-card">
-      <div class="proj-icon">🚗</div>
-      <div class="proj-info">
+
+    <div class="proj-card reveal-stagger">
+      <div class="proj-img">🚗</div>
+      <div class="proj-body">
         <h3>智能小车创新设计</h3>
         <p class="meta">2024.02 - 2024.06 · 独立开发</p>
         <p>以 STM32 单片机为核心，搭载红外传感器，实现自主循迹与智能避障功能。使用 PID 控制算法优化运动控制，通过 Keil 开发环境与仿真工具完成代码调试与性能调优。</p>
         <div class="proj-stats">
-          <div class="proj-stat"><div class="num">±2cm</div><div class="lbl">循迹精度</div></div>
-          <div class="proj-stat"><div class="num">&lt;0.1s</div><div class="lbl">避障响应</div></div>
+          <div class="proj-stat"><div class="num"><span class="count-up" data-count="2" data-prefix="±" data-suffix="cm">±2cm</span></div><div class="lbl">循迹精度</div></div>
+          <div class="proj-stat"><div class="num"><span class="count-up" data-count="0.1" data-decimals="1" data-prefix="<" data-suffix="s"><0.1s</span></div><div class="lbl">避障响应</div></div>
           <div class="proj-stat"><div class="num">STM32</div><div class="lbl">主控芯片</div></div>
           <div class="proj-stat"><div class="num">PID</div><div class="lbl">控制算法</div></div>
         </div>
       </div>
     </div>
-    <div class="proj-card" style="margin-top:1.5rem;">
-      <div class="proj-icon">🖥</div>
-      <div class="proj-info">
-        <h3>智能座舱 HMI 仪表盘</h3>
-        <p class="meta">2026.06 · Flask + Web · <a href="https://github.com/wang1267/smart-cockpit-hmi" target="_blank" style="color:var(--cyan);">github.com/wang1267/smart-cockpit-hmi</a></p>
+
+    <div class="proj-card reveal-stagger">
+      <div class="proj-img">🖥</div>
+      <div class="proj-body">
+        <h3>智能座舱 HMI 仪表盘 <span class="click-badge">🔗 点击查看</span></h3>
+        <p class="meta">2026.06 · Flask + Web · <a href="https://github.com/wang1267/smart-cockpit-hmi" target="_blank">github.com/wang1267/smart-cockpit-hmi</a></p>
         <p>车载中控屏交互原型：SVG 数字仪表盘、空调控制面板、语音指令识别、10Hz 实时传感器数据模拟。零硬件依赖，浏览器即可演示。</p>
         <div class="proj-stats">
           <div class="proj-stat"><div class="num">Flask</div><div class="lbl">后端框架</div></div>
@@ -324,44 +671,367 @@
   </div>
 </section>
 
-<!-- CONTACT -->
+<!-- ═══════════════ CONTACT · 极简 ═══════════════ -->
 <section id="contact">
   <div class="section-inner reveal">
+    <span class="section-num">05</span>
     <p class="section-tag">_contact</p>
     <h2 class="section-title">联系方式</h2>
     <div class="contact-links">
-      <a class="contact-item" href="mailto:3583079370@qq.com">
+      <a class="contact-item reveal-stagger" href="mailto:3583079370@qq.com">
         <span class="contact-icon">📧</span> 3583079370@qq.com
       </a>
-      <a class="contact-item" href="tel:15271392082">
+      <a class="contact-item reveal-stagger" href="tel:15271392082">
         <span class="contact-icon">📱</span> 15271392082
       </a>
-      <a class="contact-item" href="https://github.com/wang1267" target="_blank">
+      <a class="contact-item reveal-stagger" href="https://github.com/wang1267" target="_blank">
         <span class="contact-icon">💻</span> github.com/wang1267
       </a>
-      <a class="contact-item" href="简历/智车232王哲.pdf" target="_blank">
+      <a class="contact-item reveal-stagger" href="简历/智车232王哲.pdf" target="_blank" id="pdfDownloadBtn">
         <span class="contact-icon">📄</span> 下载简历 PDF
       </a>
     </div>
+    <div class="pdf-toggle reveal-stagger" id="pdfToggle">👁 在线预览简历</div>
+    <div class="pdf-preview" id="pdfPreview">
+      <iframe id="pdfFrame" src="" loading="lazy" title="简历预览"></iframe>
+    </div>
   </div>
 </section>
+
+<!-- 右侧滚动指示器 -->
+<div class="side-scroll" id="sideScroll" title="下一节">
+  <div class="scroll-mouse"></div>
+  <span>下滑</span>
+</div>
 
 <footer>
   <p>© 2026 王哲 · Built with Claude Code · 湖北汽车工业学院 智能车辆工程</p>
 </footer>
 
-<script>
-  // 滚动渐入动画
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-  }, { threshold: 0.15 });
-  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+<!-- 回到顶部 -->
+<div id="backTop" title="回到顶部">↑</div>
 
-  // 视差浮动
-  window.addEventListener('scroll', () => {
-    const scrolled = window.pageYOffset;
-    document.querySelector('.grid-bg').style.transform = `translateY(${scrolled * 0.4}px)`;
+<script>
+/* ═══════════════════════════════════════════
+   A · Canvas 粒子连线背景
+   ═══════════════════════════════════════════ */
+(function() {
+  const canvas = document.getElementById('particle-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+  const isMobile = window.innerWidth < 768;
+  const COUNT = isMobile ? 45 : 80;
+  const CONNECT_DIST = 140;
+  const MOUSE_RADIUS = 180;
+  const MOUSE_FORCE = 0.015;
+
+  let mouse = { x: -9999, y: -9999 };
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  document.addEventListener('mousemove', e => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
   });
+  document.addEventListener('mouseleave', () => {
+    mouse.x = -9999;
+    mouse.y = -9999;
+  });
+
+  // 触摸支持
+  document.addEventListener('touchmove', e => {
+    mouse.x = e.touches[0].clientX;
+    mouse.y = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', () => {
+    mouse.x = -9999;
+    mouse.y = -9999;
+  });
+
+  class Particle {
+    constructor() {
+      this.x = Math.random() * W;
+      this.y = Math.random() * H;
+      this.vx = (Math.random() - 0.5) * 0.6;
+      this.vy = (Math.random() - 0.5) * 0.6;
+      this.r = Math.random() * 1.6 + 0.8;
+      this.baseOpacity = Math.random() * 0.4 + 0.15;
+    }
+    update() {
+      // 鼠标吸引
+      const dx = mouse.x - this.x;
+      const dy = mouse.y - this.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < MOUSE_RADIUS) {
+        const force = (MOUSE_RADIUS - dist) / MOUSE_RADIUS * MOUSE_FORCE;
+        this.vx += dx / dist * force;
+        this.vy += dy / dist * force;
+      }
+      // 阻尼
+      this.vx *= 0.998;
+      this.vy *= 0.998;
+      // 限速
+      const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+      if (speed > 1.2) {
+        this.vx = this.vx / speed * 1.2;
+        this.vy = this.vy / speed * 1.2;
+      }
+      this.x += this.vx;
+      this.y += this.vy;
+      // 边界反弹
+      if (this.x < 0) { this.x = 0; this.vx *= -1; }
+      if (this.x > W) { this.x = W; this.vx *= -1; }
+      if (this.y < 0) { this.y = 0; this.vy *= -1; }
+      if (this.y > H) { this.y = H; this.vy *= -1; }
+    }
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(0,229,255,${this.baseOpacity})`;
+      ctx.fill();
+    }
+  }
+
+  for (let i = 0; i < COUNT; i++) particles.push(new Particle());
+
+  function animate() {
+    ctx.clearRect(0, 0, W, H);
+
+    // 更新 + 绘制粒子
+    for (const p of particles) { p.update(); p.draw(); }
+
+    // 连线
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < CONNECT_DIST) {
+          const alpha = (1 - dist / CONNECT_DIST) * 0.12;
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(0,229,255,${alpha})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+
+/* ═══════════════════════════════════════════
+   C · 导航滚动高亮
+   ═══════════════════════════════════════════ */
+(function() {
+  const sections = [];
+  document.querySelectorAll('section[id]').forEach(s => sections.push(s));
+  const links = document.querySelectorAll('.nav-links a');
+
+  const observer = new IntersectionObserver((entries) => {
+    // 找出当前最可见的 section
+    let best = null, bestRatio = 0;
+    entries.forEach(e => {
+      if (e.isIntersecting && e.intersectionRatio > bestRatio) {
+        bestRatio = e.intersectionRatio;
+        best = e.target;
+      }
+    });
+    if (best) {
+      links.forEach(a => {
+        a.classList.toggle('active', a.getAttribute('href') === '#' + best.id);
+      });
+    }
+  }, { threshold: [0.1, 0.3, 0.5, 0.7], rootMargin: '-60px 0px 0px 0px' });
+
+  sections.forEach(s => observer.observe(s));
+})();
+
+/* ═══════════════════════════════════════════
+   E · 错位入场动画
+   ═══════════════════════════════════════════ */
+(function() {
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      const el = e.target;
+      // 错位延迟：data-delay 或自动计算同组内的序号
+      let delay = parseFloat(el.dataset.delay) || 0;
+      if (!el.dataset.delay) {
+        // 自动计算：同父元素下第几个 .reveal-stagger
+        const parent = el.parentElement;
+        if (parent) {
+          const siblings = [...parent.querySelectorAll('.reveal-stagger')];
+          const idx = siblings.indexOf(el);
+          if (idx >= 0) delay = idx * 0.12;
+        }
+      }
+      setTimeout(() => {
+        el.classList.add('visible');
+      }, delay * 1000);
+      revealObserver.unobserve(el);
+    });
+  }, { threshold: 0.15 });
+
+  // .reveal 直接触发（无延迟）
+  const basicObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        basicObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.reveal-stagger').forEach(el => revealObserver.observe(el));
+  document.querySelectorAll('.reveal:not(.reveal-stagger)').forEach(el => basicObserver.observe(el));
+})();
+
+/* ═══════════════════════════════════════════
+   F · 数字滚动动效
+   ═══════════════════════════════════════════ */
+(function() {
+  const animated = new Set();
+
+  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+  function animateCount(el) {
+    if (animated.has(el)) return;
+    animated.add(el);
+
+    const target = parseFloat(el.dataset.count);
+    const decimals = parseInt(el.dataset.decimals) || 0;
+    const prefix = el.dataset.prefix || '';
+    const suffix = el.dataset.suffix || '';
+    const duration = 1500; // ms
+    const start = performance.now();
+
+    function tick(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const val = target * easeOutCubic(progress);
+      el.textContent = prefix + val.toFixed(decimals) + suffix;
+      if (progress < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        el.textContent = prefix + target.toFixed(decimals) + suffix;
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+
+  const countObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        animateCount(e.target);
+        countObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.3 });
+
+  document.querySelectorAll('.count-up[data-count]').forEach(el => countObserver.observe(el));
+})();
+
+/* ═══════════════════════════════════════════
+   视差浮动（保留原效果）
+   ═══════════════════════════════════════════ */
+window.addEventListener('scroll', () => {
+  const scrolled = window.pageYOffset;
+  const canvas = document.getElementById('particle-canvas');
+  if (canvas) canvas.style.transform = `translateY(${scrolled * 0.25}px)`;
+});
+
+/* ═══════════════════════════════════════════
+   右侧指示器 · 点击跳下一节 + 到底隐藏
+   ═══════════════════════════════════════════ */
+(function() {
+  const side = document.getElementById('sideScroll');
+  const sections = [...document.querySelectorAll('section[id]')];
+  const lastId = sections[sections.length - 1]?.id;
+
+  side.addEventListener('click', () => {
+    let found = false;
+    for (const s of sections) {
+      const rect = s.getBoundingClientRect();
+      if (rect.bottom > window.innerHeight * 0.3) {
+        s.scrollIntoView({ behavior: 'smooth' });
+        found = true; break;
+      }
+    }
+    if (!found) sections[sections.length - 1]?.scrollIntoView({ behavior: 'smooth' });
+  });
+
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.target.id === lastId && e.isIntersecting) {
+        side.classList.add('end');
+      } else if (e.target.id === lastId && !e.isIntersecting) {
+        side.classList.remove('end');
+      }
+    });
+  }, { threshold: 0.5 });
+  if (sections.length) obs.observe(sections[sections.length - 1]);
+})();
+
+/* ═══════════════════════════════════════════
+   回到顶部按钮
+   ═══════════════════════════════════════════ */
+(function() {
+  const btn = document.getElementById('backTop');
+  btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  window.addEventListener('scroll', () => {
+    btn.classList.toggle('show', window.pageYOffset > 400);
+  });
+})();
+
+/* ═══════════════════════════════════════════
+   汉堡菜单
+   ═══════════════════════════════════════════ */
+(function() {
+  const hamburger = document.getElementById('hamburger');
+  const mobileNav = document.getElementById('mobileNav');
+  const links = mobileNav.querySelectorAll('a');
+
+  hamburger.addEventListener('click', () => {
+    const open = mobileNav.classList.toggle('open');
+    hamburger.classList.toggle('open', open);
+    document.body.style.overflow = open ? 'hidden' : '';
+  });
+
+  links.forEach(a => {
+    a.addEventListener('click', () => {
+      mobileNav.classList.remove('open');
+      hamburger.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+  });
+})();
+
+/* ═══════════════════════════════════════════
+   PDF 在线预览
+   ═══════════════════════════════════════════ */
+(function() {
+  const toggle = document.getElementById('pdfToggle');
+  const preview = document.getElementById('pdfPreview');
+  const frame = document.getElementById('pdfFrame');
+  let loaded = false;
+
+  toggle.addEventListener('click', () => {
+    const open = preview.classList.toggle('open');
+    toggle.textContent = open ? '✕ 收起预览' : '👁 在线预览简历';
+    if (open && !loaded) {
+      frame.src = '简历/智车232王哲.pdf';
+      loaded = true;
+    }
+  });
+})();
 </script>
 </body>
 </html>
