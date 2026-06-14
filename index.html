@@ -305,7 +305,7 @@
     color: var(--cyan); border: 1px solid rgba(0,229,255,.4);
     padding: 2px 10px; border-radius: 50px; margin-left: .5rem;
     animation: badgePulse 2.5s ease-in-out infinite;
-    cursor: pointer; letter-spacing: 0;
+    cursor: pointer; letter-spacing: 0; text-decoration: none;
   }
   @keyframes badgePulse {
     0%,100% { border-color: rgba(0,229,255,.4); box-shadow: 0 0 0 rgba(0,229,255,0); }
@@ -677,7 +677,7 @@
     <div class="proj-card reveal-stagger">
       <div class="proj-img">🖥</div>
       <div class="proj-body">
-        <h3>智能座舱 HMI 仪表盘 <span class="click-badge">🔗 点击查看</span></h3>
+        <h3>智能座舱 HMI 仪表盘 <a href="https://github.com/wang1267/smart-cockpit-hmi" target="_blank" class="click-badge">🔗 点击查看</a></h3>
         <p class="meta">2026.06 · Flask + Web · <a href="https://github.com/wang1267/smart-cockpit-hmi" target="_blank">github.com/wang1267/smart-cockpit-hmi</a></p>
         <p>车载中控屏交互原型：SVG 数字仪表盘、空调控制面板、语音指令识别、10Hz 实时传感器数据模拟。零硬件依赖，浏览器即可演示。</p>
         <div class="proj-stats">
