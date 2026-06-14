@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智能小车 · 项目分析</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #07070e; --bg2: #0d0d1a; --cyan: #00e5ff; --green: #00ff88;
+    --white: #f0f0f5; --gray: #8892a4; --border: #1e1e32;
+  }
+
+  body {
+    font-family: 'Noto Sans SC', sans-serif; background: var(--bg);
+    color: var(--white); overflow-x: hidden; line-height: 1.7;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed; top: 0; width: 100%; z-index: 100;
+    padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center;
+    background: rgba(7,7,14,.9); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 1.2rem; color: var(--cyan); }
+  .nav-back { color: var(--gray); text-decoration: none; font-size: .9rem; transition: color .3s; }
+  .nav-back:hover { color: var(--cyan); }
+
+  /* ─── HERO ─── */
+  #hero {
+    position: relative; z-index: 1; padding: 7rem 2rem 4rem;
+    max-width: 900px; margin: 0 auto; text-align: center;
+  }
+  #hero .tag {
+    font-family: 'JetBrains Mono', monospace; font-size: .8rem; color: var(--cyan);
+    letter-spacing: 3px; margin-bottom: .5rem;
+  }
+  #hero h1 {
+    font-size: 2.8rem; font-weight: 900; margin-bottom: .8rem;
+    background: linear-gradient(135deg, var(--cyan), var(--green));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  #hero .sub { color: var(--gray); font-size: 1rem; }
+
+  /* ─── MAIN ─── */
+  main { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 0 2rem 4rem; }
+
+  section { margin-bottom: 4rem; }
+  .sec-num {
+    font-family: 'JetBrains Mono', monospace; font-size: .75rem; color: var(--cyan);
+    letter-spacing: 3px; margin-bottom: .3rem;
+  }
+  .sec-title { font-size: 1.6rem; font-weight: 900; margin-bottom: 1.5rem; color: var(--white); }
+
+  /* ─── OVERVIEW CARD ─── */
+  .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .ov-card {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 1.2rem; text-align: center;
+  }
+  .ov-card .val { font-family: 'JetBrains Mono', monospace; font-size: 1.6rem; color: var(--green); font-weight: 700; }
+  .ov-card .lbl { font-size: .8rem; color: var(--gray); margin-top: .2rem; }
+
+  /* ─── ARCH CARDS ─── */
+  .arch-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .arch-card {
+    flex: 1; min-width: 180px; background: var(--bg2);
+    border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem;
+    transition: border-color .3s;
+  }
+  .arch-card:hover { border-color: var(--cyan); }
+  .arch-card .icon { font-size: 1.8rem; margin-bottom: .6rem; }
+  .arch-card h4 { font-size: 1rem; color: var(--cyan); margin-bottom: .5rem; }
+  .arch-card p { font-size: .85rem; color: var(--gray); }
+  .arch-card .spec { font-family: 'JetBrains Mono', monospace; font-size: .75rem; color: var(--green); margin-top: .5rem; }
+
+  /* ─── FLOW ─── */
+  .flow { display: flex; gap: .5rem; flex-wrap: wrap; justify-content: center; align-items: center; }
+  .flow-step {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+    padding: .8rem 1.2rem; text-align: center; font-size: .85rem;
+  }
+  .flow-step .s { font-family: 'JetBrains Mono', monospace; font-size: .7rem; color: var(--cyan); }
+  .flow-arrow { color: var(--cyan); font-size: 1.2rem; }
+
+  /* ─── CODE ─── */
+  .code-block {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 1.2rem; overflow-x: auto; margin-top: 1rem;
+  }
+  .code-block pre { font-family: 'JetBrains Mono', monospace; font-size: .8rem; color: var(--gray); line-height: 1.8; }
+  .code-block .kw { color: var(--cyan); }
+  .code-block .fn { color: var(--green); }
+  .code-block .cm { color: #666; }
+
+  /* ─── BACK ─── */
+  .back-bottom { text-align: center; padding: 2rem 0 4rem; }
+  .back-bottom a {
+    display: inline-flex; align-items: center; gap: .4rem;
+    color: var(--cyan); text-decoration: none; font-size: .9rem;
+    border: 1px solid rgba(0,229,255,.3); padding: .6rem 1.5rem; border-radius: 50px;
+    transition: all .3s;
+  }
+  .back-bottom a:hover { background: rgba(0,229,255,.1); }
+
+  footer { text-align: center; padding: 2rem; border-top: 1px solid var(--border); color: var(--gray); font-size: .8rem; position: relative; z-index: 1; }
+
+  @media (max-width: 768px) {
+    .overview-grid { grid-template-columns: 1fr 1fr; }
+    .arch-card { min-width: 140px; }
+    #hero h1 { font-size: 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">WZ</div>
+  <a href="index.html" class="nav-back">← 返回主页</a>
+</nav>
+
+<section id="hero">
+  <p class="tag">_project_detail</p>
+  <h1>智能小车创新设计</h1>
+  <p class="sub">STM32 · 红外循迹 · 避障 · PID 控制</p>
+</section>
+
+<main>
+
+<!-- 概览 -->
+<section>
+  <p class="sec-num">01_概览</p>
+  <h2 class="sec-title">项目概览</h2>
+  <div class="overview-grid">
+    <div class="ov-card"><div class="val">2024.02</div><div class="lbl">开始时间</div></div>
+    <div class="ov-card"><div class="val">4 个月</div><div class="lbl">开发周期</div></div>
+    <div class="ov-card"><div class="val">独立开发</div><div class="lbl">开发模式</div></div>
+    <div class="ov-card"><div class="val">STM32F103</div><div class="lbl">主控芯片</div></div>
+  </div>
+</section>
+
+<!-- 硬件架构 -->
+<section>
+  <p class="sec-num">02_硬件</p>
+  <h2 class="sec-title">硬件架构</h2>
+  <div class="arch-row">
+    <div class="arch-card">
+      <div class="icon">🧠</div>
+      <h4>主控模块</h4>
+      <p>STM32F103C8T6 微控制器，ARM Cortex-M3 内核，72MHz 主频，丰富 GPIO 与定时器资源</p>
+      <p class="spec">芯片: STM32F103C8T6 · 72MHz</p>
+    </div>
+    <div class="arch-card">
+      <div class="icon">👁</div>
+      <h4>感知模块</h4>
+      <p>红外对管传感器阵列，用于路面黑线检测；超声波模块辅助前方障碍物距离探测</p>
+      <p class="spec">红外传感器 × 4 + 超声波 HC-SR04</p>
+    </div>
+    <div class="arch-card">
+      <div class="icon">⚡</div>
+      <h4>驱动模块</h4>
+      <p>L298N 双 H 桥电机驱动，独立控制左右两组直流减速电机，支持 PWM 调速</p>
+      <p class="spec">L298N 驱动 · 4 路 PWM</p>
+    </div>
+    <div class="arch-card">
+      <div class="icon">🔋</div>
+      <h4>供电模块</h4>
+      <p>7.4V 锂电池组经稳压模块输出 5V/3.3V，分别供电驱动板与主控板</p>
+      <p class="spec">7.4V 锂电池 · 稳压模块</p>
+    </div>
+  </div>
+</section>
+
+<!-- 软件设计 -->
+<section>
+  <p class="sec-num">03_软件</p>
+  <h2 class="sec-title">软件设计</h2>
+
+  <h4 style="color:var(--cyan);margin-bottom:.8rem;">主程序流程</h4>
+  <div class="flow">
+    <div class="flow-step"><span class="s">①</span><br>传感器读取</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step"><span class="s">②</span><br>ADC 采样</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step"><span class="s">③</span><br>PID 计算</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step"><span class="s">④</span><br>PWM 输出</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step"><span class="s">⑤</span><br>避障判断</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step"><span class="s">⑥</span><br>状态更新</div>
+  </div>
+
+  <div class="code-block">
+    <pre><span class="cm">/* 循迹传感器读取与位置偏差计算 */</span>
+<span class="kw">uint8_t</span> <span class="fn">readSensors</span>(<span class="kw">void</span>) {
+    <span class="kw">uint8_t</span> pattern = <span class="val">0</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="val">0</span>; i < <span class="val">4</span>; i++) {
+        pattern |= (GPIO_ReadInputDataBit(sensor_port[i], sensor_pin[i]) << i);
+    }
+    <span class="kw">return</span> pattern;
+}
+
+<span class="cm">/* PID 控制器 — 根据偏差计算差速 */</span>
+<span class="kw">float</span> <span class="fn">PID_Compute</span>(<span class="kw">float</span> error) {
+    integral += error * DT;
+    derivative = (error - prev_error) / DT;
+    prev_error = error;
+    <span class="kw">return</span> Kp * error + Ki * integral + Kd * derivative;
+}
+
+<span class="cm">/* 电机 PWM 输出 — 左轮/右轮独立调速 */</span>
+<span class="kw">void</span> <span class="fn">motorControl</span>(<span class="kw">float</span> correction) {
+    <span class="kw">int16_t</span> left  = BASE_SPEED - correction;
+    <span class="kw">int16_t</span> right = BASE_SPEED + correction;
+    TIM_SetCompare1(TIM2, clamp(left,  <span class="val">0</span>, MAX_PWM));
+    TIM_SetCompare2(TIM2, clamp(right, <span class="val">0</span>, MAX_PWM));
+}</pre>
+  </div>
+  <p style="color:var(--gray);font-size:.8rem;margin-top:.6rem;">开发环境: Keil MDK-ARM V5 · 语言: C · 仿真工具: ST-Link 在线调试</p>
+</section>
+
+<!-- 关键指标 -->
+<section>
+  <p class="sec-num">04_指标</p>
+  <h2 class="sec-title">关键性能指标</h2>
+  <div class="overview-grid">
+    <div class="ov-card"><div class="val">±2 cm</div><div class="lbl">循迹精度 — 黑线中心偏差</div></div>
+    <div class="ov-card"><div class="val">&lt; 0.1 s</div><div class="lbl">避障响应时间</div></div>
+    <div class="ov-card"><div class="val">PID</div><div class="lbl">控制算法 — 位置式</div></div>
+    <div class="ov-card"><div class="val">10 ms</div><div class="lbl">控制周期 — 100Hz</div></div>
+  </div>
+</section>
+
+<!-- 成果与收获 -->
+<section>
+  <p class="sec-num">05_收获</p>
+  <h2 class="sec-title">成果与收获</h2>
+  <div class="arch-row">
+    <div class="arch-card">
+      <div class="icon">🔧</div>
+      <h4>嵌入式开发</h4>
+      <p>掌握 STM32 外设配置、GPIO/PWM/ADC/Timer 编程，熟悉 Keil 开发与 ST-Link 调试流程</p>
+    </div>
+    <div class="arch-card">
+      <div class="icon">📐</div>
+      <h4>控制算法</h4>
+      <p>理解 PID 控制原理，掌握 Kp/Ki/Kd 参数整定方法，实现 ±2cm 循迹精度</p>
+    </div>
+    <div class="arch-card">
+      <div class="icon">🐛</div>
+      <h4>调试能力</h4>
+      <p>独立排查硬件走线、传感器阈值、PWM 频率等实际问题，积累完整调试经验</p>
+    </div>
+  </div>
+</section>
+
+<div class="back-bottom">
+  <a href="index.html">← 返回个人主页</a>
+</div>
+
+</main>
+
+<footer>
+  <p>© 2026 王哲 · Built with Claude Code · 湖北汽车工业学院 智能车辆工程</p>
+</footer>
+
+</body>
+</html>
