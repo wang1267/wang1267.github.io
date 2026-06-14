@@ -1058,6 +1058,24 @@ window.addEventListener('scroll', () => {
     }
   });
 })();
+
+/* ═══════════════════════════════════════════
+   滚动位置记忆 · 返回时恢复原位
+   ═══════════════════════════════════════════ */
+(function() {
+  if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+  }
+  window.addEventListener('beforeunload', () => {
+    sessionStorage.setItem('_scrollY', window.pageYOffset);
+  });
+  const saved = sessionStorage.getItem('_scrollY');
+  if (saved) {
+    requestAnimationFrame(() => {
+      window.scrollTo(0, parseInt(saved, 10));
+    });
+  }
+})();
 </script>
 </body>
 </html>
