@@ -277,9 +277,13 @@
   .proj-card::before {
     content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
     background: var(--cyan); transition: width .3s ease; z-index: 2;
+    pointer-events: none;
   }
   .proj-card:hover::before { width: 6px; }
   .proj-card:hover { border-color: var(--cyan); transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,229,255,.08); }
+  .proj-card .card-link {
+    position: absolute; inset: 0; z-index: 1;
+  }
   .proj-card + .proj-card { margin-top: 1.5rem; }
   .proj-img {
     width: 200px; min-height: 200px; flex-shrink: 0;
@@ -674,11 +678,12 @@
       </div>
     </div>
 
-    <div class="proj-card reveal-stagger">
+    <div class="proj-card reveal-stagger" style="cursor:pointer;">
+      <a href="https://github.com/wang1267/smart-cockpit-hmi" target="_blank" class="card-link" aria-label="查看智能座舱HMI项目"></a>
       <div class="proj-img">🖥</div>
       <div class="proj-body">
-        <h3>智能座舱 HMI 仪表盘 <a href="https://github.com/wang1267/smart-cockpit-hmi" target="_blank" class="click-badge">🔗 点击查看</a></h3>
-        <p class="meta">2026.06 · Flask + Web · <a href="https://github.com/wang1267/smart-cockpit-hmi" target="_blank">github.com/wang1267/smart-cockpit-hmi</a></p>
+        <h3>智能座舱 HMI 仪表盘 <a href="https://github.com/wang1267/smart-cockpit-hmi" target="_blank" class="click-badge" style="position:relative;z-index:3;">🔗 点击查看</a></h3>
+        <p class="meta" style="position:relative;z-index:3;">2026.06 · Flask + Web · <a href="https://github.com/wang1267/smart-cockpit-hmi" target="_blank">github.com/wang1267/smart-cockpit-hmi</a></p>
         <p>车载中控屏交互原型：SVG 数字仪表盘、空调控制面板、语音指令识别、10Hz 实时传感器数据模拟。零硬件依赖，浏览器即可演示。</p>
         <div class="proj-stats">
           <div class="proj-stat"><div class="num">Flask</div><div class="lbl">后端框架</div></div>
